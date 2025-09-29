@@ -76,6 +76,10 @@ To tidy up generated artefacts after experimenting:
 rm emails/*_clean.txt
 ```
 
+## Disclaimer
+
+EmailParser is a research-oriented prototype. Its heuristics have not been validated for production workloads, regulated environments, or privacy-sensitive data flows. You must run comprehensive tests against your own datasets and pipelines before adopting it in any automation. By using the code, you acknowledge that it is provided “as is,” without warranties of any kind, and you assume full responsibility for any outcomes or losses that result from its use.
+
 ## Extras
 
 - `Example.ipynb` illustrates the parsing pipeline and lets you compare raw vs. cleaned output inside a notebook.
@@ -108,3 +112,9 @@ EOF
 - `mkdir -p emails` ensures the `emails/` directory exists (the `-p` flag keeps the command idempotent).
 - The here-document writes a minimal message that includes a short body plus a signature block for the parser to remove.
 - Feel free to replace the contents of `test0.txt` with any plain-text email. Additional files can be added alongside it (`emails/my_message.txt`) and will be cleaned to `emails/my_message_clean.txt`.
+
+---
+
+### Disclaimer
+
+EmailParser is supplied for exploratory use only. Thoroughly test it against your own datasets, security policies, and compliance requirements before integrating it into production systems. Use it at your own risk; the authors and contributors disclaim all warranties, including implied warranties of merchantability and fitness for a particular purpose, and are not liable for any damages arising from its use.
