@@ -27,8 +27,33 @@ Wendy mentioned that you would be a great person to speak to since you are close
 ```
 
 ## getting started
-```python
-from Parser import convert
-fname = 'emails/test0.txt'
-convert(fname)  # a copy of test0, without signature block
-```
+1. Create and activate the virtual environment, then install dependencies and the spaCy model:
+
+	```bash
+	python3 -m venv venv
+	source venv/bin/activate
+	pip install -r requirements.txt
+	python -m spacy download en_core_web_sm
+	```
+
+	Alternatively, you can simply run:
+
+	```bash
+	source activate_env.sh
+	```
+
+	This script activates the bundled `venv/`, verifies that `numpy`, `spacy`, and the `en_core_web_sm` model are available, and prints the paths in use.
+
+2. Run the parser against any email text file:
+
+	```bash
+	python -c "from Parser import convert; print(convert('emails/test0.txt'))"
+	```
+
+	The command prints the path to a new `*_clean.txt` file created alongside the input. The cleaned file omits detected signatures while preserving the message body and quoted threads.
+
+3. (Optional) Remove generated files when you are done:
+
+	```bash
+	rm emails/*_clean.txt
+	```

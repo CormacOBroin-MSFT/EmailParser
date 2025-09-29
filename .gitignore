@@ -1,6 +1,14 @@
-emails/test1_clean.txt
+venv/
+activate_env.sh
+
+# Email fixtures
+emails/
+EmailParser/emails/
+
+# Bytecode and notebook cruft
 *.pyc
 .ipynb_checkpoints
 Untitled.ipynb
+
+# Platform junk
 .DS_Store
-emails/.DS_Store
