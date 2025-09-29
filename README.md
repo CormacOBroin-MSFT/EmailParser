@@ -12,6 +12,32 @@ EmailParser cleans plaintext emails by stripping out signature blocks and other 
 
 The result is a text file with the same structure as the original message but without the trailing signature block. Quoted threads, forward headers, and empty lines are preserved as-is.
 
+### Processing flow
+
+1. **Load email** — `convert(path)` resolves the file, ensures it exists, and prepares the sibling `*_clean` output path.
+2. **Extract body with mailparser** — `mailparser.parse_from_file` walks the MIME structure and returns plain-text parts; if none are found, the raw file contents become the fallback body.
+3. **Normalise text** — HTML fragments are flattened to UTF-8 text, escape sequences are unescaped, and windows-style line endings collapse to Unix `\n`.
+4. **Split into candidate lines** — the body is split with `splitlines(keepends=True)` so each original line (including blanks) can be evaluated independently.
+5. **Score each line** — spaCy tags the short lines; heuristics look for signature cues (closings, contact data, headers, quote delimiters) and toggle a “signature mode.” Probability thresholds decide if borderline lines are dropped.
+6. **Write cleaned copy** — when outside signature mode, lines are streamed to disk verbatim; once a signature is detected it’s skipped until a new conversational block or quoted thread appears.
+
+```mermaid
+flowchart TD
+	A[Input email path] --> B{Exists?}
+	B -- no --> X[[FileNotFoundError]]
+	B -- yes --> C[mailparser.parse_from_file]
+	C -->|plain text parts| D[Body text]
+	C -->|empty| E[Fallback to raw file]
+	E --> D
+	D --> F[Normalise HTML & escapes]
+	F --> G[Split into lines]
+	G --> H[spaCy tagging + heuristics]
+	H -->|signature mode| I[Skip line]
+	H -->|keep| J[Write to *_clean file]
+	I --> H
+	J --> K[[Clean email saved]]
+```
+
 ## Setup
 
 Create a virtual environment, install dependencies, and download the spaCy English model:
@@ -60,3 +86,25 @@ rm emails/*_clean.txt
 - If you see `OSError: [E050]` from spaCy, the requested model is missing—re-run `python -m spacy download en_core_web_sm`.
 - MIME emails with attachments may produce blank bodies if `mailparser` cannot decode the payload. In that case the raw file contents are used as a fallback.
 - For HTML-heavy messages, ensure they are saved with UTF-8 encoding so the parser can safely normalise line endings.
+
+## Preparing input emails
+
+If you are starting from scratch, create the folder structure and seed email file before running `convert`:
+
+```bash
+mkdir -p emails
+cat <<'EOF' > emails/test0.txt
+Hi there,
+
+This is a placeholder message so you can test EmailParser.
+
+Best,
+Signature Bot
+Signature Bot | Example Org
+555-0100 | bot@example.org
+EOF
+```
+
+- `mkdir -p emails` ensures the `emails/` directory exists (the `-p` flag keeps the command idempotent).
+- The here-document writes a minimal message that includes a short body plus a signature block for the parser to remove.
+- Feel free to replace the contents of `test0.txt` with any plain-text email. Additional files can be added alongside it (`emails/my_message.txt`) and will be cleaned to `emails/my_message_clean.txt`.
